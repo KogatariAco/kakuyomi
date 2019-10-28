@@ -1,0 +1,7 @@
+{
+  "lerna": "3.18.3",
+  "packages": [
+    "packages/@kakuyomi/*"
+  ],
+  "version": "independent"
+}
