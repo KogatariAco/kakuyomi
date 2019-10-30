@@ -16,7 +16,7 @@ describe("Parser", () => {
   it("空のテキスト", () => {
     expectParse("", {blocks: []});
   });
-  it("文章のみ", () => {
+  it("1文", () => {
     expectParse("テキスト", {
       blocks: [
         {
@@ -30,7 +30,7 @@ describe("Parser", () => {
       ]
     });
   });
-  it("改行", () => {
+  it("改行のみも1ブロックとして扱う", () => {
     expectParse("テキスト\n\n次のテキスト", {
       blocks: [
         {

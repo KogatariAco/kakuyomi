@@ -4,19 +4,18 @@ import {Text, Block, Sentence} from "@kakuyomi/core";
 // TODO: 異体字セレクター、Standardized Variantsを考慮したい
 const Kanji = chevrotain.createToken({
   name: "Kanji",
-  // pattern: /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)+(?=《)/mu
-  pattern: /[一-龠]+(?=《)/
+  pattern: /[一-龠]+/
 });
 const Bar = chevrotain.createToken({name: "Bar", pattern: /\||｜/});
 const Lparen = chevrotain.createToken({name: "Lparen", pattern: /《/});
 const Rparen = chevrotain.createToken({name: "Rparen", pattern: /》/});
-const Body = chevrotain.createToken({name: "Body", pattern: /[^\|｜《》\r\n]+/});
+const Plain = chevrotain.createToken({name: "Plain", pattern: /[^一-龠\|｜《》\r\n]+/});
 const NewLine = chevrotain.createToken({
   name: "NewLine",
   pattern: /\r?\n/
 });
 
-const allTokens = [Kanji, Lparen, Rparen, Bar, Body, NewLine];
+const allTokens = [Kanji, Lparen, Rparen, Bar, Plain, NewLine];
 
 const kakuyomuLexer = new chevrotain.Lexer(allTokens);
 
@@ -82,7 +81,6 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
           ALT: () => $.SUBRULE(($ as any).ruby)
         },
         {
-          GATE: $.BACKTRACK(($ as any).plain),
           ALT: () => $.SUBRULE(($ as any).plain)
         }
       ]);
@@ -91,12 +89,16 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
     $.RULE("ruby", () => {
       return $.OR([
         {
-          GATE: $.BACKTRACK(($ as any).barRuby),
-          ALT: () => $.SUBRULE(($ as any).barRuby)
+          GATE: () => {
+            const prev = $.LA(1);
+            const next = $.LA(2);
+            return prev.tokenType.name === Kanji.name && next.tokenType.name === Lparen.name;
+          },
+          ALT: () => $.SUBRULE(($ as any).kanjiRuby)
         },
         {
-          GATE: $.BACKTRACK(($ as any).kanjiRuby),
-          ALT: () => $.SUBRULE(($ as any).kanjiRuby)
+          GATE: $.BACKTRACK(($ as any).barRuby),
+          ALT: () => $.SUBRULE(($ as any).barRuby)
         }
       ]);
     });
@@ -104,7 +106,7 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
     $.RULE("kanjiRuby", () => {
       const parent = $.CONSUME(Kanji).image;
       $.CONSUME(Lparen);
-      const ruby = $.CONSUME(Body).image;
+      const ruby = $.SUBRULE(($ as any).body);
       $.CONSUME(Rparen);
       return {
         kind: "ruby",
@@ -115,9 +117,9 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
 
     $.RULE("barRuby", () => {
       $.CONSUME(Bar);
-      const parent = $.CONSUME1(Body).image;
+      const parent = $.SUBRULE(($ as any).body);
       $.CONSUME(Lparen);
-      const ruby = $.CONSUME2(Body).image;
+      const ruby = $.SUBRULE2(($ as any).body);
       $.CONSUME(Rparen);
       return {
         kind: "ruby",
@@ -129,7 +131,7 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
     $.RULE("emphasis", () => {
       $.CONSUME(Lparen);
       $.CONSUME2(Lparen);
-      const body = $.CONSUME(Body).image;
+      const body = $.SUBRULE(($ as any).body);
       $.CONSUME(Rparen);
       $.CONSUME2(Rparen);
       return {
@@ -138,10 +140,19 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
       };
     });
 
+    $.RULE("body", () => {
+      const body: string[] = [];
+      $.MANY(() => {
+        body.push($.OR([{ALT: () => $.CONSUME(Kanji)}, {ALT: () => $.CONSUME(Plain)}]).image);
+      });
+      return body.join("");
+    });
+
     $.RULE("plain", () => {
       // blockで結合するためここではconsumeのみ
       const text = $.OR([
-        {ALT: () => $.CONSUME(Body)},
+        {ALT: () => $.CONSUME(Plain)},
+        {ALT: () => $.CONSUME(Kanji)},
         {ALT: () => $.CONSUME(Lparen)},
         {ALT: () => $.CONSUME(Rparen)},
         {ALT: () => $.CONSUME(Bar)}
