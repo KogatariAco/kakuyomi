@@ -9,7 +9,8 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "tsc -p .",
-    "test": "jest"
+    "test": "jest",
+    "diagram": "npx ts-node ./gen_diagrams.ts"
   },
   "author": "Kogatari Aco",
   "license": "MIT",
