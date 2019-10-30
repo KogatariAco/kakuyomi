@@ -52,7 +52,19 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
     $.RULE("block", () => {
       const sentences: Sentence[] = [];
       $.MANY(() => {
-        sentences.push($.SUBRULE(($ as any).sentence));
+        const sentence: Sentence = $.SUBRULE(($ as any).sentence);
+        $.ACTION(() => {
+          if (sentences.length > 0) {
+            const last = sentences[sentences.length - 1];
+            if (last.kind === "text" && sentence.kind === "text") {
+              last.text += sentence.text;
+            } else {
+              sentences.push(sentence);
+            }
+          } else {
+            sentences.push(sentence);
+          }
+        });
       });
       return {
         sentences
@@ -127,8 +139,13 @@ class KakuyomuParser extends chevrotain.EmbeddedActionsParser {
     });
 
     $.RULE("plain", () => {
-      // FIME: 括弧がマッチしない
-      const text = $.CONSUME(Body).image;
+      // blockで結合するためここではconsumeのみ
+      const text = $.OR([
+        {ALT: () => $.CONSUME(Body)},
+        {ALT: () => $.CONSUME(Lparen)},
+        {ALT: () => $.CONSUME(Rparen)},
+        {ALT: () => $.CONSUME(Bar)}
+      ]).image;
       return {
         kind: "text",
         text

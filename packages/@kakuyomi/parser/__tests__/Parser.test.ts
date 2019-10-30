@@ -97,18 +97,18 @@ describe("Parser", () => {
       ]
     });
   });
-  // it("not ルビ", () => {
-  //   expectParse("ルビでない《ルビでない》", {
-  //     blocks: [
-  //       {
-  //         sentences: [
-  //           {
-  //             kind: "text",
-  //             text: "ルビでない《ルビでない》"
-  //           }
-  //         ]
-  //       }
-  //     ]
-  //   });
-  // });
+  it("not ルビ", () => {
+    expectParse("ルビでない《ルビでない》", {
+      blocks: [
+        {
+          sentences: [
+            {
+              kind: "text",
+              text: "ルビでない《ルビでない》"
+            }
+          ]
+        }
+      ]
+    });
+  });
 });
