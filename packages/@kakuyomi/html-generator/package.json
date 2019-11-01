@@ -1,0 +1,42 @@
+{
+  "name": "@kakuyomi/html-generator",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "views",
+    "public",
+    "bin"
+  ],
+  "bin": {
+    "kakuyomi-html-generator": "./bin/run"
+  },
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsc -p ./tsconfig.lib.json",
+    "serve": "ts-node-dev server.ts"
+  },
+  "author": "Kogatari Aco",
+  "license": "MIT",
+  "types": "lib/index.d.ts",
+  "dependencies": {
+    "@kakuyomi/core": "^0.1.0",
+    "@kakuyomi/parser": "^0.1.0",
+    "commandpost": "^1.4.0",
+    "fs-extra": "^8.1.0",
+    "pug": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.1",
+    "@types/fs-extra": "^8.0.1",
+    "@types/pug": "^2.0.4",
+    "@types/node": "^12.11.7",
+    "express": "^4.17.1",
+    "ts-node-dev": "^1.0.0-pre.43",
+    "typescript": "^3.6.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

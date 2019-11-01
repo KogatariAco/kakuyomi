@@ -1,6 +1,6 @@
 # @kakuyomi/parser
 
-`@kakuyomi/parser`は[カクヨム記法](https://kakuyomu.jp/help/entry/notation) Parserです。
+`@kakuyomi/parser`は[カクヨム記法](https://kakuyomu.jp/help/entry/notation)Parserです。
 
 ## Syntax
 

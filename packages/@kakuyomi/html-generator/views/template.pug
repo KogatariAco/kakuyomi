@@ -1,0 +1,70 @@
+doctype html
+html(lang="ja")
+  head
+    title= title
+    style(type='text/css').
+      header {
+        padding: 15px 30px;
+        text-align: center;
+        max-width: 665px;
+        margin: 0 auto;
+
+        font-family: 'Helvetica Neue',Helvetica,Arial,'ヒラギノ角ゴ Pr6N','Hiragino Kaku Gothic Pr6N','ヒラギノ角ゴ ProN','Hiragino Kaku Gothic ProN','ヒラギノ角ゴ StdN','Hiragino Kaku Gothic StdN','Segoe UI',Verdana,'メイリオ',Meiryo,sans-serif;
+      }
+      #novel-title {
+        font-weight: 700;
+        font-size: 3em;
+        margin: 0 auto;
+      }
+      #novel-writer {
+        font-size: 2em;
+        color: #888;
+        margin: 0;
+      }
+      main {
+        padding: 15px 30px;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+      #episode {
+        line-height: 1.8;
+        font-family: '游明朝',YuMincho,'ヒラギノ明朝 Pr6N','Hiragino Mincho Pr6N','ヒラギノ明朝 ProN','Hiragino Mincho ProN','ヒラギノ明朝 StdN','Hiragino Mincho StdN',HiraMinProN-W3,'HGS明朝B','HG明朝B',dcsymbols,'Helvetica Neue',Helvetica,Arial,'ヒラギノ角ゴ Pr6N','Hiragino Kaku Gothic Pr6N','ヒラギノ角ゴ ProN','Hiragino Kaku Gothic ProN','ヒラギノ角ゴ StdN','Hiragino Kaku Gothic StdN','Segoe UI',Verdana,'メイリオ',Meiryo,sans-serif;
+      }
+      #episode > p {
+        margin: 0;
+        font-size: 17.5px!important;
+      }
+      .emphasis-point {
+        font-style: normal;
+      }
+      .emphasis-point > span {
+        padding: .35em 0;
+        background: url(/images/emphasis-point.png) no-repeat top center;
+        background-size: 3px 3px;
+      }
+  body
+    header
+      p#novel-title #{title}
+      p#novel-writer #{writer}
+    main
+      div#episode
+        each block, index in text.blocks
+          if block.sentences.length > 0
+            //- 先頭の字下げがあることに注意
+            p(id=`p${index}`) 　
+              each sentence in block.sentences
+                if sentence.kind == "text"
+                  | #{sentence.text}
+                else if sentence.kind == "ruby"
+                  ruby
+                    rb #{sentence.parent}
+                    rp (
+                    rt #{sentence.ruby}
+                    rp )
+                else if sentence.kind == "emphasis"
+                  each c in sentence.body
+                    em.emphasis-point
+                      span #{c}
+          else
+            p.blank(id=`p${index}`)
+              br
