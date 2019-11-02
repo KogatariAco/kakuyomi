@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as fsx from "fs-extra";
 import * as path from "path";
 import * as commandpost from "commandpost";
+import {Text} from "@kakuyomi/core";
 import * as kakuyomi from "@kakuyomi/parser";
 import {render} from "./index";
 
@@ -19,7 +20,7 @@ interface CompileOpts {
 }
 
 interface CompileArgs {
-  source: string;
+  sources: string[];
 }
 
 interface Config {
@@ -28,8 +29,12 @@ interface Config {
   writer: string;
 }
 
+const filename = (target: string): string => {
+  return path.basename(target, path.extname(target));
+};
+
 const root = commandpost
-  .create<CompileOpts, CompileArgs>("kakuyomi-html-generatorr [source]")
+  .create<CompileOpts, CompileArgs>("kakuyomi-html-generator <sources...>")
   .version(packageJson.version, "-v, --version")
   .description("kakuyomu text to HTML Generator")
   .option("-o, --outdir <outdir>", "出力フォルダ")
@@ -53,37 +58,45 @@ const root = commandpost
       console.log("著者名を指定指定ください");
     }
     config.writer = opts.writer[0];
-    if (!args.source || args.source.length <= 0) {
+    if (!args.sources || args.sources.length <= 0) {
       console.log("カクヨム記法で書かれたテキストファイルを1つ指定してください");
       process.exit(1);
     }
-    const text = await readFile(path.resolve(cwd, args.source), "utf8");
-    const result = kakuyomi.parse(text);
-    if (result.lexErrors.length > 0) {
-      for (const e of result.lexErrors) {
-        console.log(e.message);
+    const sources: {[name: string]: Text} = {};
+    for (const source of args.sources) {
+      const target = path.resolve(cwd, source);
+      const text = await readFile(target, "utf8");
+      const result = kakuyomi.parse(text);
+      if (result.lexErrors.length > 0) {
+        for (const e of result.lexErrors) {
+          console.log(e.message);
+        }
+        process.exit(1);
       }
-      process.exit(1);
-    }
-    if (result.parseErrors.length > 0) {
-      for (const e of result.parseErrors) {
-        console.log(e.message);
+      if (result.parseErrors.length > 0) {
+        for (const e of result.parseErrors) {
+          console.log(e.message);
+        }
+        process.exit(1);
       }
-      process.exit(1);
+      const name = filename(target);
+      sources[name] = result.ast;
     }
     const outputPath = path.resolve(cwd, config.outdir);
     try {
       await mkdir(outputPath);
     } catch (e) {}
     const template = await readFile(path.resolve(__dirname, "../views/template.pug"), "utf8");
-    await writeFile(
-      path.join(outputPath, "index.html"),
-      render(template, {
-        title: config.title,
-        writer: config.writer,
-        text: result.ast
-      })
-    );
+    for (const [name, text] of Object.entries(sources)) {
+      await writeFile(
+        path.join(outputPath, `${name}.html`),
+        render(template, {
+          title: config.title,
+          writer: config.writer,
+          text
+        })
+      );
+    }
     await fsx.copy(path.resolve(__dirname, "../public"), outputPath);
   });
 
