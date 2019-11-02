@@ -33,6 +33,13 @@ const filename = (target: string): string => {
   return path.basename(target, path.extname(target));
 };
 
+const exit = (messages: string[]) => {
+  for (const message of messages) {
+    console.error(message);
+  }
+  process.exit(1);
+};
+
 const root = commandpost
   .create<CompileOpts, CompileArgs>("kakuyomi-html-generator <sources...>")
   .version(packageJson.version, "-v, --version")
@@ -51,16 +58,15 @@ const root = commandpost
       config.outdir = opts.outdir[0];
     }
     if (!opts.title || opts.title.length <= 0) {
-      console.log("タイトルを指定指定ください");
+      exit(["タイトルを指定指定ください"]);
     }
     config.title = opts.title[0];
     if (!opts.writer || opts.writer.length <= 0) {
-      console.log("著者名を指定指定ください");
+      exit(["著者名を指定指定ください"]);
     }
     config.writer = opts.writer[0];
     if (!args.sources || args.sources.length <= 0) {
-      console.log("カクヨム記法で書かれたテキストファイルを1つ指定してください");
-      process.exit(1);
+      exit(["カクヨム記法で書かれたテキストファイルを1つ指定してください"]);
     }
     const sources: {[name: string]: Text} = {};
     for (const source of args.sources) {
@@ -68,16 +74,10 @@ const root = commandpost
       const text = await readFile(target, "utf8");
       const result = kakuyomi.parse(text);
       if (result.lexErrors.length > 0) {
-        for (const e of result.lexErrors) {
-          console.log(e.message);
-        }
-        process.exit(1);
+        exit(result.lexErrors.map(e => e.message));
       }
       if (result.parseErrors.length > 0) {
-        for (const e of result.parseErrors) {
-          console.log(e.message);
-        }
-        process.exit(1);
+        exit(result.parseErrors.map(e => e.message));
       }
       const name = filename(target);
       sources[name] = result.ast;
@@ -105,8 +105,8 @@ commandpost.exec(root, process.argv).then(
     process.stdout.write("");
     process.exit(0);
   },
-  err => {
-    console.error("uncaught error", err);
+  error => {
+    console.error(error.message);
     process.exit(1);
   }
 );
