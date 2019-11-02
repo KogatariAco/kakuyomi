@@ -16,7 +16,7 @@ app.get("/", (_: express.Request, res: express.Response) => {
           sentences: [
             {
               kind: "text",
-              text: "@kakuyomi/html-generatorを使うことで、カクヨム記法で書かれた文章からHTMLを生成できます。"
+              text: "　@kakuyomi/html-generatorを使うことで、カクヨム記法で書かれた文章からHTMLを生成できます。"
             }
           ]
         },
@@ -27,7 +27,7 @@ app.get("/", (_: express.Request, res: express.Response) => {
           sentences: [
             {
               kind: "text",
-              text: "ルビを"
+              text: "　ルビを"
             },
             {
               kind: "ruby",

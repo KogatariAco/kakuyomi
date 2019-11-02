@@ -50,8 +50,7 @@ html(lang="ja")
       div#episode
         each block, index in text.blocks
           if block.sentences.length > 0
-            //- 先頭の字下げがあることに注意
-            p(id=`p${index}`) 　
+            p(id=`p${index}`)
               each sentence in block.sentences
                 if sentence.kind == "text"
                   | #{sentence.text}
