@@ -5,7 +5,7 @@ import * as path from "path";
 import * as commandpost from "commandpost";
 import {Text} from "@kakuyomi/core";
 import * as kakuyomi from "@kakuyomi/parser";
-import {render} from "./index";
+import * as renderer from "@kakuyomi/html-renderer";
 
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf8"));
 
@@ -86,18 +86,18 @@ const root = commandpost
     try {
       await mkdir(outputPath);
     } catch (e) {}
-    const template = await readFile(path.resolve(__dirname, "../views/template.pug"), "utf8");
+    const template = await readFile(renderer.Path.template, "utf8");
     for (const [name, text] of Object.entries(sources)) {
       await writeFile(
         path.join(outputPath, `${name}.html`),
-        render(template, {
+        renderer.render(template, {
           title: config.title,
           writer: config.writer,
           text
         })
       );
     }
-    await fsx.copy(path.resolve(__dirname, "../public"), outputPath);
+    await fsx.copy(renderer.Path.publicDir, outputPath);
   });
 
 commandpost.exec(root, process.argv).then(

@@ -32,3 +32,9 @@ kakuyomi-html-generator ./path-to-file
 
 傍点用の画像を`/images/emphasis-point.png`から取得します。
 このpathは現時点では変更できません。
+
+## サンプルの実行
+
+```bash
+./bin/run -t 'タイトル' -w '著者' -o ./examples/out ./examples/test.txt
+```
